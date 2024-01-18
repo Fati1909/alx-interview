@@ -1,24 +1,22 @@
+#!/usr/bin/python3
+
+"""
+  This script contains the implementation of
+  minOperations function
+"""
+
+
 def minOperations(n):
-    if n == 1:
-        return 0
-    
-    operations = 0
-    clipboard = 1
-    
-    for i in range(2, n + 1):
-        if n % i == 0:
-            clipboard = i
-            operations += 2
-            break
-    
+    """function that return the minimum operations needed
+    to print n"H" in a file by using two operations "Copy All"
+    and "Paste"
+    """
+    nbr_operation = 0
+    min_divisor = 2
+
     while n > 1:
-        n //= clipboard
-        operations += clipboard
-    
-    return operations
-
-# Example usage:
-n = 9
-result = minOperations(n)
-print(f"Number of operations for n={n}: {result}")
-
+        while n % min_divisor == 0:
+            nbr_operation += min_divisor
+            n /= min_divisor
+        min_divisor += 1
+    return nbr_operation
