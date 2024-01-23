@@ -1,49 +1,48 @@
 #!/usr/bin/python3
 """Log parsing"""
 import sys
-import signal
 
-# Define the status codes
-STATUS_CODES = {200, 301, 400, 401, 403, 404, 405, 500}
 
-# Initialize variables
-total_size = 0
-lines_count = 0
-status_counts = {str(code): 0 for code in sorted(STATUS_CODES)}
-
-def print_statistics():
-    print(f"Total file size: {total_size}")
-    for code, count in sorted(status_counts.items()):
+def print_metrics(total_file_size, status_code_counts):
+    """Print the metrics"""
+    print("File size: {}".format(total_file_size))
+    for code in sorted(status_code_counts):
+        count = status_code_counts[code]
         if count > 0:
-            print(f"{code}: {count}")
-    print()
+            print('{}: {}'.format(code, count))
 
-def signal_handler(signal, frame):
-    print("\nStatistics before interruption:")
-    print_statistics()
-    sys.exit(0)
 
-# Set up signal handler for CTRL+C
-signal.signal(signal.SIGINT, signal_handler)
+total_file_size = 0
+status_code_counts = {
+    200: 0,
+    301: 0,
+    400: 0,
+    401: 0,
+    403: 0,
+    404: 0,
+    405: 0,
+    500: 0,
+}
+
+line_count = 0
 
 try:
     for line in sys.stdin:
-        # Split the line and check if it matches the specified format
+        line_count += 1
         parts = line.split()
-        if len(parts) >= 10 and parts[5] == '"GET' and parts[7].isdigit() and parts[8].isdigit():
-            status_code = parts[8]
-            file_size = int(parts[9])
+        try:
+            status_code = int(parts[-2])
+            status_code_counts[status_code] += 1
+        except Exception as err:
+            pass
 
-            # Update metrics
-            total_size += file_size
-            status_counts[status_code] += 1
-            lines_count += 1
+        try:
+            file_size = int(parts[-1])
+            total_file_size += file_size
+        except Exception as err:
+            pass
 
-            # Print statistics every 10 lines
-            if lines_count % 10 == 0:
-                print_statistics()
-
-except KeyboardInterrupt:
-    print("\nStatistics before interruption:")
-    print_statistics()
-    sys.exit(0)
+        if line_count % 10 == 0:
+            print_metrics(total_file_size, status_code_counts)
+finally:
+    print_metrics(total_file_size, status_code_counts)
