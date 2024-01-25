@@ -1,48 +1,46 @@
 #!/usr/bin/python3
-"""Log parsing"""
-import sys
+"""script that reads stdin line by line and computes metrics"""
 
 
-def print_metrics(total_file_size, status_code_counts):
-    """Print the metrics"""
-    print("File size: {}".format(total_file_size))
-    for code in sorted(status_code_counts):
-        count = status_code_counts[code]
-        if count > 0:
-            print('{}: {}'.format(code, count))
+def print_stat(size, states):
+    """Definition of print_stat function"""
+    print("File size: {}".format(size))
+    for state in sorted(states):
+        print("{}: {}".format(state, states[state]))
 
 
-total_file_size = 0
-status_code_counts = {
-    200: 0,
-    301: 0,
-    400: 0,
-    401: 0,
-    403: 0,
-    404: 0,
-    405: 0,
-    500: 0,
-}
+if __name__ == "__main__":
+    import sys
 
-line_count = 0
+    file_size = 0
+    states_dict = {}
+    Acceptable = ['200', '301', '400', '401', '403', '404', '405', '500']
+    count = 0
 
-try:
-    for line in sys.stdin:
-        line_count += 1
-        parts = line.split()
-        try:
-            status_code = int(parts[-2])
-            status_code_counts[status_code] += 1
-        except Exception as err:
-            pass
+    try:
+        for line in sys.stdin:
+            if count == 10:
+                print_stat(file_size, states_dict)
+                count = 1
+            else:
+                count += 1
 
-        try:
-            file_size = int(parts[-1])
-            total_file_size += file_size
-        except Exception as err:
-            pass
+            line = line.split()
 
-        if line_count % 10 == 0:
-            print_metrics(total_file_size, status_code_counts)
-finally:
-    print_metrics(total_file_size, status_code_counts)
+            try:
+                file_size += int(line[-1])
+            except (IndexError, ValueError):
+                pass
+
+            try:
+                if line[-2] in Acceptable:
+                    if states_dict.get(line[-2], -1) == -1:
+                        states_dict[line[-2]] = 1
+                    else:
+                        states_dict[line[-2]] += 1
+            except IndexError:
+                pass
+        print_stat(file_size, states_dict)
+    except KeyboardInterrupt:
+        print_stat(file_size, states_dict)
+        raise
