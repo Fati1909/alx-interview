@@ -1,18 +1,7 @@
 #!/usr/bin/python3
-'''N-Queens Challenge'''
+'''N Queens Challenge'''
 
 import sys
-
-
-def is_safe(placed_queens, row, col):
-    for cord in placed_queens:
-        if (
-            cord[1] == col
-            or cord[1] + (row - cord[0]) == col
-            or cord[1] - (row - cord[0]) == col
-        ):
-            return False
-    return True
 
 
 if __name__ == '__main__':
@@ -36,20 +25,32 @@ if __name__ == '__main__':
     r = 0
     c = 0
 
+    # iterate thru rows
     while r < n:
         goback = False
-
+        # iterate thru columns
         while c < n:
-            if not is_safe(placed_queens, r, c):
+            # check is current column is safe
+            safe = True
+            for cord in placed_queens:
+                col = cord[1]
+                if(col == c or col + (r-cord[0]) == c or
+                        col - (r-cord[0]) == c):
+                    safe = False
+                    break
+
+            if not safe:
                 if c == n - 1:
                     goback = True
                     break
                 c += 1
                 continue
 
+            # place queen
             cords = [r, c]
             placed_queens.append(cords)
-
+            # if last row, append solution and reset all to last unfinished row
+            # and last safe column in that row
             if r == n - 1:
                 solutions.append(placed_queens[:])
                 for cord in placed_queens:
@@ -66,15 +67,15 @@ if __name__ == '__main__':
             else:
                 c = 0
             break
-
         if stop:
             break
-
+        # on fail: go back to previous row
+        # and continue from last safe column + 1
         if goback:
             r -= 1
             while r >= 0:
                 c = placed_queens[r][1] + 1
-                del placed_queens[r]
+                del placed_queens[r]  # delete previous queen coordinates
                 if c < n:
                     break
                 r -= 1
